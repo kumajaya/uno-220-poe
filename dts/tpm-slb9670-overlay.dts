@@ -43,6 +43,6 @@
 	};
 
 	__overrides__ {
-		addr = <&slb9670>,"reg:0";
+		cs = <&slb9670>,"reg:0";
 	};
 };
