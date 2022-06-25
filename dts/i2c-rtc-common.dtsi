@@ -283,6 +283,19 @@
 		};
 	};
 
+	fragment@21 {
+		target = <&i2cbus>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			rx8010: rx8010@32 {
+				compatible = "epson,rx8010";
+				reg = <0x32>;
+			};
+		};
+	};
+
 
 	__overrides__ {
 		abx80x = <0>,"+0";
@@ -306,6 +319,7 @@
 		s35390a = <0>,"+18";
 		bq32000 = <0>,"+19";
 		rv8803 = <0>,"+20";
+		rx8010 = <0>,"+21";
 
 		addr = <&abx80x>, "reg:0",
 		       <&ds1307>, "reg:0",
