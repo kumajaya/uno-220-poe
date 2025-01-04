@@ -4,11 +4,17 @@ Advantech UNO-220-P4N2AE HAT community support
 **Installing Ubuntu server**
 
 1. Installing Ubuntu server: [how-to-install-ubuntu-on-your-raspberry-pi](https://ubuntu.com/tutorials/how-to-install-ubuntu-on-your-raspberry-pi)
-2. Enable Epson RX-8010SJ-B RTC, edit modules.conf to load rtc_rx8010 kernel module on boot:
+2. Enable Epson RX-8010SJ-B RTC:
 
-`sudo nano /etc/modules-load.d/modules.conf`
+- Create an alternative device tree blob for Epson RX-8010SJ-B RTC:
 
-> rtc_rx8010
+`$ sudo dtc -I dts -O dtb i2c-rtc-overlay.dts -o /boot/firmware/overlays/i2c-rtc-mod.dtbo`
+
+- Add i2c-rtc-mod overlay to config.txt:
+
+`$ sudo nano /boot/firmware/config.txt`
+
+> dtoverlay=i2c-rtc-mod,rx8010
 
 3. Edit config.txt to enable TI TCA9554 IO expander:
 
@@ -18,23 +24,15 @@ Advantech UNO-220-P4N2AE HAT community support
 
 4. Enable Infineon OPTIGA™ TPM SLB9670:
 
-- Convert device tree blob back to device tree source:
+- Create an alternative device tree blob for Infineon OPTIGA™ TPM SLB9670:
 
-`$ dtc -I dtb -O dts /boot/firmware/overlays/tpm-slb9670.dtbo -o tpm-slb9670-ce0.dts`
+`$ sudo dtc -I dts -O dtb tpm-slb9670-overlay.dts -o /boot/firmware/overlays/tpm-slb9670-mod.dtbo`
 
-- Change "reg = <0x01>" to "reg = <0x00>":
-
-`$ nano tpm-slb9670-ce0.dts`
-
-- Convert device tree source to device tree blob:
-
-`$ sudo dtc -I dts -O dtb tpm-slb9670-ce0.dts -o /boot/firmware/overlays/tpm-slb9670-ce0.dtbo`
-
-- Add tpm-slb9670-ce0 overlay to config.txt:
+- Add tpm-slb9670-mod overlay to config.txt:
 
 `$ sudo nano /boot/firmware/config.txt`
 
-> dtoverlay=tpm-slb9670-ce0
+> dtoverlay=tpm-slb9670-mod,cs=0x00
 
 5. Set location timezone, i.e. Asia/Jakarta:
 
@@ -43,6 +41,8 @@ Advantech UNO-220-P4N2AE HAT community support
 6. Reboot
 
 7. Get RTC time:
+
+`$ sudo apt install util-linux-extra`
 
 `$ sudo hwclock -r --verbose`
 
@@ -67,6 +67,21 @@ $ gpioget 2 1
 `$ sudo modprobe -r gpio_pca953x`
 
 12. Control PL1 GPIO LED using rpi gpio out node on PIN 32 (GPIO 12)
+
+- Create an udev rules for proper GPIO access:
+
+`$ sudo nano /etc/udev/rules.d/45-gpio.rules`
+````
+KERNEL=="gpiochip0", GROUP="gpio", MODE="0660"
+KERNEL=="gpiochip1", GROUP="gpio", MODE="0660"
+KERNEL=="gpiochip2", GROUP="gpio", MODE="0660"
+KERNEL=="gpiomem", GROUP="gpio", MODE="0660"
+````
+`$ sudo udevadm control --reload-rules && sudo udevadm trigger`
+
+- Install package dependency to control Raspberry Pi GPIO from Node-RED:
+
+`$ sudo apt install python3-rpi.gpio`
 
 13. Test TPM support:
 
